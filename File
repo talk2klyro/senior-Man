@@ -1,0 +1,284 @@
+📁 Project Structure: Static JSON Gallery (HTML5 + CSS3 + Vanilla JS)
+
+Below is the complete file breakdown —
+
+
+---
+
+🎨 styles.css
+
+:root{
+  --bg:#0f1724; --card:#0b1220; --accent:#7dd3fc; --muted:#94a3b8; --glass: rgba(255,255,255,0.04);
+  --gap:16px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:linear-gradient(180deg,#061018 0%, #081525 100%);color:#e6eef6;}
+.site-header{display:flex;align-items:center;justify-content:space-between;padding:24px;gap:12px}
+.site-header h1{margin:0;font-size:1.25rem}
+.controls{display:flex;gap:8px;align-items:center}
+.controls select, .controls button{padding:8px 12px;border-radius:10px;border:0;background:var(--glass);color:inherit}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--gap);padding:16px}
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:8px;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;gap:8px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+.thumb{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:8px;display:block}
+.meta{display:flex;justify-content:space-between;align-items:center}
+.meta .title{font-weight:600}
+.meta .small{color:var(--muted);font-size:0.85rem}
+.card .actions{display:flex;gap:8px}
+.card button{padding:6px 10px;border-radius:8px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.lightbox{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(2,6,23,0.6)}
+.lightbox[aria-hidden="false"]{display:flex}
+.lb-content{max-width:1100px;width:100%;background:var(--card);border-radius:12px;padding:18px;display:flex;gap:18px}
+.lb-content img{max-width:60%;width:60%;height:auto;border-radius:8px;object-fit:contain}
+.lb-meta{flex:1}
+.lb-actions{display:flex;gap:12px;margin:8px 0}
+.lb-actions button, .lb-actions a{padding:8px 12px;border-radius:10px;border:0;background:var(--glass)}
+.lb-close{position:absolute;top:18px;right:18px;padding:10px;border-radius:10px;border:0;background:var(--glass)}
+@media(max-width:800px){.lb-content{flex-direction:column}.lb-content img{width:100%;max-width:100%}}
+.site-footer{padding:12px;text-align:center;color:var(--muted)}
+button:focus, a:focus, select:focus{outline:3px solid rgba(125,211,252,0.18);outline-offset:3px}
+
+
+---
+
+⚙️ script.js
+
+const GALLERY_JSON = 'gallery.json';
+const LIKES_API = 'likes.php';
+let gallery = [];
+let likesCache = {};
+const galleryEl = document.getElementById('gallery');
+const lightbox = document.getElementById('lightbox');
+const lbImage = document.getElementById('lbImage');
+const lbTitle = document.getElementById('lbTitle');
+const lbUploader = document.getElementById('lbUploader');
+const lbCaption = document.getElementById('lbCaption');
+const likeBtn = document.getElementById('likeBtn');
+const likeCountEl = document.getElementById('likeCount');
+const shareBtn = document.getElementById('shareBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const lbClose = document.getElementById('lbClose');
+const sortSelect = document.getElementById('sortSelect');
+const uploadDemo = document.getElementById('uploadDemo');
+let activePhoto = null;
+
+async function init(){
+  try{
+    const res = await fetch(GALLERY_JSON, {cache: 'no-store'});
+    gallery = await res.json();
+  }catch(e){
+    gallery = [
+      {id:1,url:'https://picsum.photos/1200/800?random=1',title:'Sample 1',uploader:'Demo',caption:'A demo photo',date:'2025-01-01',likes:0},
+      {id:2,url:'https://picsum.photos/1200/800?random=2',title:'Sample 2',uploader:'Demo',caption:'Another demo',date:'2025-02-12',likes:2}
+    ];
+  }
+  await tryLoadServerLikes();
+  renderGallery();
+  handleDeepLink();
+}
+
+async function tryLoadServerLikes(){
+  try{
+    const res = await fetch(LIKES_API+'?action=list');
+    if(!res.ok) throw new Error('no api');
+    const data = await res.json();
+    likesCache = data;
+  }catch(e){
+    likesCache = {};
+    gallery.forEach(g => likesCache[g.id] = (g.likes || 0));
+    const local = JSON.parse(localStorage.getItem('likes_local') || '{}');
+    Object.keys(local).forEach(k => likesCache[k] = (likesCache[k]||0) + local[k]);
+  }
+}
+
+function renderGallery(){
+  galleryEl.innerHTML = '';
+  const sort = sortSelect.value;
+  let items = [...gallery];
+  if(sort === 'liked') items.sort((a,b)=> (likesCache[b.id]||0) - (likesCache[a.id]||0));
+  else items.sort((a,b)=> new Date(b.date) - new Date(a.date));
+  items.forEach(item=>{
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `
+      <img class="thumb" src="${item.url}" alt="${escapeHtml(item.title)}" loading="lazy" data-id="${item.id}" />
+      <div class="meta">
+        <div>
+          <div class="title">${escapeHtml(item.title)}</div>
+          <div class="small">by ${escapeHtml(item.uploader)} · ${formatDate(item.date)}</div>
+        </div>
+        <div class="actions">
+          <button data-like="${item.id}" aria-label="Like">❤️ ${likesCache[item.id]||0}</button>
+          <button data-open="${item.id}" aria-label="Open">Open</button>
+        </div>
+      </div>`;
+    galleryEl.appendChild(card);
+  });
+}
+
+galleryEl.addEventListener('click', (e)=>{
+  const likeEl = e.target.closest('[data-like]');
+  if(likeEl) return handleLike(parseInt(likeEl.dataset.like,10), likeEl);
+  const openEl = e.target.closest('[data-open]');
+  if(openEl) return openLightboxById(parseInt(openEl.dataset.open,10));
+  const img = e.target.closest('.thumb');
+  if(img) return openLightboxById(parseInt(img.dataset.id,10));
+});
+
+async function handleLike(id, btnEl){
+  likesCache[id] = (likesCache[id]||0) + 1;
+  btnEl.innerText = `❤️ ${likesCache[id]}`;
+  try{
+    const res = await fetch(LIKES_API, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'like',id})});
+    if(!res.ok) throw new Error('server errored');
+    const json = await res.json();
+    likesCache[id] = json.count;
+    btnEl.innerText = `❤️ ${json.count}`;
+  }catch(e){
+    const local = JSON.parse(localStorage.getItem('likes_local')||'{}');
+    local[id] = (local[id]||0) + 1;
+    localStorage.setItem('likes_local', JSON.stringify(local));
+  }
+}
+
+function openLightboxById(id){
+  const item = gallery.find(g=>g.id===id);
+  if(!item) return;
+  activePhoto = item;
+  lbImage.src = item.url;
+  lbImage.alt = item.title;
+  lbTitle.textContent = item.title;
+  lbUploader.textContent = `by ${item.uploader} · ${formatDate(item.date)}`;
+  lbCaption.textContent = item.caption || '';
+  likeCountEl.textContent = likesCache[id]||0;
+  likeBtn.dataset.id = id;
+  downloadBtn.href = item.url;
+  downloadBtn.setAttribute('download', (item.title||'photo') + '.jpg');
+  lightbox.setAttribute('aria-hidden','false');
+  history.replaceState(null,'', '?photo='+id);
+}
+
+lbClose.addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', (e)=>{ if(e.target===lightbox) closeLightbox(); });
+function closeLightbox(){
+  lightbox.setAttribute('aria-hidden','true');
+  activePhoto = null;
+  history.replaceState(null,'', window.location.pathname);
+}
+
+likeBtn.addEventListener('click', ()=>{
+  const id = parseInt(likeBtn.dataset.id,10);
+  handleLike(id, likeBtn);
+  likeCountEl.textContent = likesCache[id]||0;
+});
+
+shareBtn.addEventListener('click', async ()=>{
+  if(!activePhoto) return;
+  const url = location.origin + location.pathname + '?photo=' + activePhoto.id;
+  if(navigator.share){
+    try{ await navigator.share({title:activePhoto.title,text:activePhoto.caption,url}); return; }catch(e){}
+  }
+  try{ await navigator.clipboard.writeText(url); alert('Link copied to clipboard'); }catch(e){ prompt('Copy link', url); }
+});
+
+function handleDeepLink(){
+  const params = new URLSearchParams(location.search);
+  if(params.has('photo')){
+    const id = parseInt(params.get('photo'),10);
+    setTimeout(()=> openLightboxById(id), 300);
+  }
+}
+
+sortSelect.addEventListener('change', renderGallery);
+uploadDemo.addEventListener('click', ()=>{
+  const id = Date.now();
+  const item = {id,url:`https://picsum.photos/1200/800?random=${Math.floor(Math.random()*10000)}`,title:'User added',uploader:'You',caption:'Uploaded locally',date:new Date().toISOString().slice(0,10),likes:0};
+  gallery.unshift(item);
+  likesCache[item.id] = 0;
+  renderGallery();
+});
+
+function escapeHtml(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function formatDate(d){ if(!d) return ''; const dt = new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString(); }
+
+init();
+
+
+---
+
+🖼️ gallery.json
+
+[
+  {
+    "id": 1,
+    "url": "uploads/photo1.jpg",
+    "title": "Sunset Over the Lake",
+    "uploader": "Alice",
+    "caption": "A warm evening at the lake.",
+    "date": "2025-07-21",
+    "likes": 5
+  },
+  {
+    "id": 2,
+    "url": "uploads/photo2.jpg",
+    "title": "City Lights",
+    "uploader": "Bob",
+    "caption": "Nightlife downtown.",
+    "date": "2025-07-18",
+    "likes": 12
+  }
+]
+
+
+---
+
+🧩 likes.php
+
+<?php
+$FILE = __DIR__ . '/likes.txt';
+$action = $_SERVER['REQUEST_METHOD'] === 'POST' ? 'post' : ($_GET['action'] ?? '');
+
+if($action === 'list'){
+  if(!file_exists($FILE)) echo json_encode([]);
+  else{
+    $lines = array_filter(array_map('trim', file($FILE)));
+    $out = [];
+    foreach($lines as $ln){
+      list($id,$count) = explode(',', $ln) + [null,0];
+      if($id) $out[intval($id)] = intval($count);
+    }
+    header('Content-Type: application/json');
+    echo json_encode($out);
+  }
+  exit;
+}
+
+if($_SERVER['REQUEST_METHOD'] === 'POST'){
+  $body = json_decode(file_get_contents('php://input'),true);
+  if(!isset($body['id'])){ http_response_code(400); echo json_encode(['error'=>'no id']); exit; }
+  $id = intval($body['id']);
+  $map = [];
+  if(file_exists($FILE)){
+    $lines = array_filter(array_map('trim', file($FILE)));
+    foreach($lines as $ln){ list($k,$v) = explode(',',$ln) + [null,0]; if($k) $map[intval($k)] = intval($v); }
+  }
+  $map[$id] = ($map[$id] ?? 0) + 1;
+  $out = [];
+  foreach($map as $k=>$v) $out[] = $k.','.$v;
+  file_put_contents($FILE, implode("\n", $out));
+  header('Content-Type: application/json');
+  echo json_encode(['id'=>$id,'count'=>$map[$id]]);
+  exit;
+}
+
+http_response_code(405);
+echo json_encode(['error'=>'unsupported']);
+?>
+
+
+---
+
+✅ Save each section into its own file (index.html, styles.css, script.js, gallery.json, likes.php).
+If you host the files in the same folder, the gallery will load automatically and handle likes via localStorage (or likes.txt if the PHP backend is active).
+
