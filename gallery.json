@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "url": "uploads/photo1.jpg",
+    "title": "Sunset Over the Lake",
+    "uploader": "Alice",
+    "caption": "A warm evening at the lake.",
+    "date": "2025-07-21",
+    "likes": 5
+  },
+  {
+    "id": 2,
+    "url": "uploads/photo2.jpg",
+    "title": "City Lights",
+    "uploader": "Bob",
+    "caption": "Nightlife downtown.",
+    "date": "2025-07-18",
+    "likes": 12
+  }
+]
