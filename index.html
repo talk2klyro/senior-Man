@@ -1,0 +1,62 @@
+<!<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Senior Man Sadiq – Gallery</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>📸 Senior Man Sadiq Gallery</h1>
+    <p class="subtitle">Na vibes and cruise we dey 🎶</p>
+  </header>
+
+  <main>
+    <section id="gallery" class="gallery"></section>
+  </main>
+
+  <!-- Support – Programmers Section -->
+  <section id="support" style="text-align:center; margin: 40px 0;">
+    <h3>💚 Support – Programmers 💚</h3>
+    <p style="color:#555; font-size:16px;">
+      Choose any option below to send your support 🙏🏾
+    </p>
+
+    <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin-top:15px;">
+      <!-- Flutterwave Payment -->
+      <a href="https://flutterwave.com/pay/n2tafjnfo4zj" 
+         target="_blank" 
+         style="background:#ff9900; color:white; padding:12px 25px; border-radius:30px; font-weight:600; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.1); transition:all 0.3s;">
+         💳 Pay via Flutterwave
+      </a>
+
+      <!-- Bank Transfer Option -->
+      <button onclick="showBankDetails()" 
+              style="background:#2d3436; color:white; padding:12px 25px; border-radius:30px; font-weight:600; border:none; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.1); transition:all 0.3s;">
+        🏦 Bank Transfer
+      </button>
+    </div>
+
+    <!-- Hidden bank details popup -->
+    <div id="bankDetails" style="display:none; margin-top:20px; background:#f4f4f4; border-radius:15px; padding:15px 20px; max-width:350px; margin-inline:auto; line-height:1.6;">
+      <p><strong>Account Number:</strong> 9462137545</p>
+      <p><strong>Account Name:</strong> Flutterwave / Dente</p>
+      <p><strong>Bank:</strong> Wema Bank PLC</p>
+      <p style="color:#777;">⚠️ Kindly send only to this account, thank you ❤️</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>© 2025 Senior Man Sadiq. All Rights Reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    function showBankDetails() {
+      const bank = document.getElementById("bankDetails");
+      bank.style.display = bank.style.display === "none" ? "block" : "none";
+    }
+  </script>
+</body>
+</html>
