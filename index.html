@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Saddiq Gallery</title>
-  <!-- External Stylesheet -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -15,10 +14,7 @@
         <option value="recent">Most recent</option>
         <option value="liked">Most liked</option>
       </select>
-      <!-- Support Programmers Button -->
-      <a href="https://flutterwave.com/pay/n2tafjnfo4zj" target="_blank" rel="noopener noreferrer">
-        <button id="supportButton">💖 Support Programmers</button>
-      </a>
+      <button id="uploadDemo">Support - programmers</button>
     </div>
   </header>
 
@@ -45,29 +41,9 @@
   </div>
 
   <footer class="site-footer">
-    <small>
-      <a href="https://flutterwave.com/pay/n2tafjnfo4zj" target="_blank" rel="noopener noreferrer" class="support-link">
-        💖 Support Programmers
-      </a>
-    </small>
+    <small><code></code>.<code></code>Support - programmers </small>
   </footer>
 
-  <!-- Load gallery data and script -->
-  <script>
-    // Fetch gallery JSON and initialize the page
-    fetch('gallery.json')
-      .then(response => response.json())
-      .then(data => {
-        if (typeof initGallery === 'function') {
-          initGallery(data);
-        } else {
-          console.warn("initGallery() not found. Make sure script.js defines it.");
-        }
-      })
-      .catch(err => console.error('Error loading gallery.json:', err));
-  </script>
-
-  <!-- Main JavaScript (handles likes.php calls, sorting, etc.) -->
-  <script src="script.js" defer></script>
+  <script src="script.js" defer></script>a
 </body>
 </html>
