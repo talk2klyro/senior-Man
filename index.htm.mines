@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Senior Man Sadiq Gallery</title>
+
+  <!-- Link to external CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>📸 Senior Man Sadiq Gallery</h1>
+    <p>Naija vibes, premium energy 🔥</p>
+  </header>
+
+  <main>
+    <section id="gallery" class="gallery-grid">
+      <!-- Photos will load here dynamically -->
+    </section>
+  </main>
+
+  <!-- Support Section -->
+  <section id="support" class="support-section">
+    <h3>💚 Support – Programmers 💚</h3>
+    <p>Choose any option below to send your support 🙏🏾</p>
+
+    <div class="support-buttons">
+      <a href="https://flutterwave.com/pay/n2tafjnfo4zj" 
+         target="_blank" 
+         class="btn btn-flutterwave">
+         💳 Pay via Flutterwave
+      </a>
+
+      <button class="btn btn-bank" onclick="toggleBankDetails()">
+        🏦 Bank Transfer
+      </button>
+    </div>
+
+    <div id="bankDetails" class="bank-details">
+      <p><strong>Account Number:</strong> 9462137545</p>
+      <p><strong>Account Name:</strong> Flutterwave / Dente</p>
+      <p><strong>Bank:</strong> Wema Bank PLC</p>
+      <p class="bank-warning">⚠️ Kindly send only to this account, thank you ❤️</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 Senior Man Sadiq | Built with 💚 in Naija</p>
+  </footer>
+
+  <!-- External JS -->
+  <script>
+    // Fetch gallery JSON
+    async function loadGallery() {
+      try {
+        const response = await fetch("gallery.json");
+        const photos = await response.json();
+        const gallery = document.getElementById("gallery");
+        gallery.innerHTML = photos.map(photo => `
+          <div class="photo-card">
+            <img src="${photo.url}" alt="${photo.title}" loading="lazy" />
+            <div class="photo-info">
+              <h4>${photo.title}</h4>
+              <p>${photo.caption}</p>
+              <div class="meta">
+                <span>By ${photo.uploader}</span>
+                <span>❤️ ${photo.likes}</span>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      } catch (error) {
+        console.error("Failed to load gallery:", error);
+      }
+    }
+
+    // Toggle bank details
+    function toggleBankDetails() {
+      const bank = document.getElementById("bankDetails");
+      bank.classList.toggle("show");
+    }
+
+    // Initialize
+    loadGallery();
+  </script>
+</body>
+</html>
